@@ -75,4 +75,4 @@ func stockCurrentPrice(stock string, ch chan string, wg *sync.WaitGroup) {
   
 	c.Visit("https://finance.yahoo.com/quote/"+stock)
 	c.Wait()
-  }
+}
