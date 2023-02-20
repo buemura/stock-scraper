@@ -31,5 +31,5 @@ func main() {
   }
   
   cmd.StartScraping(stocks)
-  fmt.Println("Completed the code process, took: %f seconds", time.Since(start).Seconds())
+  fmt.Printf("Completed the code process, took: %f seconds", time.Since(start).Seconds())
 }

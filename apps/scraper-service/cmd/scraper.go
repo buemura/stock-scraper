@@ -53,10 +53,19 @@ func stockCurrentPrice(stock string, ch chan string, wg *sync.WaitGroup) {
 	  DomainGlob:  "*",
 	  Parallelism: 2,
 	})
+
 	c.OnRequest(func(r *colly.Request) {
-	  log.Println("Visiting", r.URL.String())
+		log.Println("Visiting", r.URL.String())
 	})
   
+	c.OnResponse(func(r *colly.Response) {
+		// log.Println("Received", r.StatusCode)
+	})
+
+	c.OnError(func(r *colly.Response, err error) {
+		// log.Fatal(err.Error())
+	})
+
 	c.OnHTML(`fin-streamer[data-field="regularMarketPrice"]`, func(e *colly.HTMLElement) {
 	  symbol := e.Attr("data-symbol")
 	  if symbol != stock {
