@@ -28,6 +28,9 @@ func main() {
 	"XPCA11.SA",
 	"XPLG11.SA",
 	"XPML11.SA",
+	"BTC-USD",
+	"ETH-USD",
+	"ADA-USD",
   }
   
   cmd.StartScraping(stocks)

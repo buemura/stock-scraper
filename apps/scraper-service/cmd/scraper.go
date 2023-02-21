@@ -18,9 +18,10 @@ func (c *StockMarketPrice) String() string {
     return fmt.Sprintf(`{"ticker": "%s", "price": %.2f}`, c.Ticker, c.Price)
 }
 
-func StartScraping(stocks []string) {
-	ch := make(chan string)
+func StartScraping(stocks []string) ([]StockMarketPrice) {
+	ch := make(chan StockMarketPrice)
 	var wg sync.WaitGroup
+	var result []StockMarketPrice
 
 	for _, stock := range stocks {
 		wg.Add(1)
@@ -33,11 +34,13 @@ func StartScraping(stocks []string) {
 	}()
 
 	for stockData := range ch {
-		fmt.Println(stockData)
+		result = append(result, stockData)
 	}
+
+	return result
 }
 
-func stockCurrentPrice(stock string, ch chan string, wg *sync.WaitGroup) {
+func stockCurrentPrice(stock string, ch chan StockMarketPrice, wg *sync.WaitGroup) {
 	defer (*wg).Done()
 	
 	c := colly.NewCollector(
@@ -48,7 +51,6 @@ func stockCurrentPrice(stock string, ch chan string, wg *sync.WaitGroup) {
 	  colly.Async(true),
 	)
   
-	// Set max Parallelism and introduce a Random Delay
 	c.Limit(&colly.LimitRule{
 	  DomainGlob:  "*",
 	  Parallelism: 2,
@@ -59,11 +61,11 @@ func stockCurrentPrice(stock string, ch chan string, wg *sync.WaitGroup) {
 	})
   
 	c.OnResponse(func(r *colly.Response) {
-		// log.Println("Received", r.StatusCode)
+		log.Println("Received", r.StatusCode)
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
-		// log.Fatal(err.Error())
+		log.Fatal(err.Error())
 	})
 
 	c.OnHTML(`fin-streamer[data-field="regularMarketPrice"]`, func(e *colly.HTMLElement) {
@@ -74,12 +76,12 @@ func stockCurrentPrice(stock string, ch chan string, wg *sync.WaitGroup) {
 	  
 	  value := e.Attr("value")
 	  price, _ := strconv.ParseFloat(value, 64)
-	  stockMarketPrice := &StockMarketPrice{
+	  stockMarketPrice := StockMarketPrice{
 		Ticker: stock,
 		Price: price, 
 	  }
 
-	  ch <- stockMarketPrice.String()
+	  ch <- stockMarketPrice
 	})
   
 	c.Visit("https://finance.yahoo.com/quote/"+stock)
